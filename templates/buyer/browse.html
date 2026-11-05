@@ -1,0 +1,180 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Browse Garbage Tickets - EcoSell{% endblock %}
+{% block page_title %}Browse Available Garbage Tickets{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Buyer Operations</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.browse') }}" class="sidebar-link active">
+        <i class="bi bi-search text-info"></i> Browse Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.my_offers') }}" class="sidebar-link">
+        <i class="bi bi-tag-fill text-warning"></i> My Bids & Offers
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.manage_prices') }}" class="sidebar-link">
+        <i class="bi bi-currency-rupee text-success"></i> Set Purchasing Rates
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Scheduled Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.purchases') }}" class="sidebar-link">
+        <i class="bi bi-receipt"></i> Purchase History
+    </a>
+</li>
+<li class="sidebar-heading">Shop Reputation</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.reviews') }}" class="sidebar-link">
+        <i class="bi bi-star-fill text-warning"></i> Customer Reviews
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.profile') }}" class="sidebar-link">
+        <i class="bi bi-shop"></i> Shop Profile
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<!-- Page Header -->
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Browse Available Recyclable Scrap</h4>
+    <p class="text-muted small mb-0">Discover verified household and commercial scrap batches ready for doorstep collection.</p>
+</div>
+
+<!-- Search & Multi-criteria Filter Bar -->
+<div class="ecosell-card p-4 mb-4">
+    <form method="GET" action="{{ url_for('buyer.browse') }}">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-dark">Category</label>
+                <select name="category_id" class="form-select form-select-sm">
+                    <option value="">-- All Categories --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.category_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-dark">City / Locality</label>
+                <input type="text" name="city" class="form-control form-control-sm" placeholder="e.g. Mumbai, Andheri" value="{{ selected_city }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-dark">Min Weight (kg)</label>
+                <input type="number" step="1" name="min_qty" class="form-control form-control-sm" placeholder="Min kg" value="{{ min_qty if min_qty is not none else '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-dark">Max Weight (kg)</label>
+                <input type="number" step="1" name="max_qty" class="form-control form-control-sm" placeholder="Max kg" value="{{ max_qty if max_qty is not none else '' }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100 py-2">
+                    <i class="bi bi-funnel me-1"></i> Filter
+                </button>
+                <a href="{{ url_for('buyer.browse') }}" class="btn btn-outline-secondary btn-sm rounded-pill py-2 px-3" title="Clear Filters">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Tickets Grid -->
+{% if tickets %}
+<div class="row g-4">
+    {% for t in tickets %}
+    <div class="col-md-6 col-xl-4">
+        <div class="ecosell-card h-100 p-4 d-flex flex-column justify-content-between card-hover-elevate">
+            <div>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-light text-dark border px-2 py-1">
+                        <i class="bi bi-tag me-1"></i> {{ t.category.category_name }}
+                    </span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                        Open for Bids
+                    </span>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-1">
+                    <a href="{{ url_for('buyer.ticket_detail', ticket_id=t.id) }}" class="text-dark">
+                        {{ t.ticket_number }}
+                    </a>
+                </h5>
+
+                {% if t.image %}
+                <div class="my-2 text-center overflow-hidden rounded-3 border" style="height: 140px;">
+                    <img src="{{ url_for('static', filename='uploads/' ~ t.image) }}" alt="Ticket photo" class="w-100 h-100" style="object-fit: cover;">
+                </div>
+                {% endif %}
+
+                <p class="text-muted small mb-3 text-truncate-2">
+                    {{ t.description or 'Clean recyclable scrap ready for physical inspection.' }}
+                </p>
+
+                <div class="p-3 bg-light rounded-3 mb-3 small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Est. Quantity:</span>
+                        <strong class="text-success fs-6">{{ t.estimated_quantity }} kg</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Condition:</span>
+                        <span class="badge bg-secondary">{{ t.garbage_condition }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Pickup Date:</span>
+                        <span class="text-dark">{{ t.preferred_pickup_date | date_format }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Location:</span>
+                        <span class="text-dark text-truncate ms-2" style="max-width: 170px;">
+                            <i class="bi bi-geo-alt text-danger"></i> {{ t.city }} ({{ t.pincode }})
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                {% set existing_offer = my_offers_map.get(t.id) %}
+                {% if existing_offer %}
+                    <div class="alert alert-info py-2 px-3 small d-flex justify-content-between align-items-center mb-2">
+                        <span>Your Current Bid: <strong>₹{{ existing_offer.offered_price_per_kg }}/kg</strong></span>
+                        <span class="badge bg-info text-dark">{{ existing_offer.offer_status }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                    <span class="text-muted small">
+                        <i class="bi bi-people me-1"></i> {{ t.offers.count() }} dealers bid
+                    </span>
+                    <a href="{{ url_for('buyer.ticket_detail', ticket_id=t.id) }}" class="btn btn-success btn-sm rounded-pill px-4">
+                        {% if existing_offer %}Update Bid{% else %}Place Bid{% endif %} <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state py-5">
+    <i class="bi bi-search empty-state-icon"></i>
+    <h5 class="fw-bold text-dark">No Matching Tickets Found</h5>
+    <p class="text-muted small mb-3">Try adjusting your category, city, or weight filters to view more available scrap listings.</p>
+    <a href="{{ url_for('buyer.browse') }}" class="btn btn-primary rounded-pill px-4">Reset Filters</a>
+</div>
+{% endif %}
+{% endblock %}
+

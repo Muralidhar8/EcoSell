@@ -1,0 +1,153 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}User Management - EcoSell Admin{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Platform Administration</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i> Overview Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.buyers_verification') }}" class="sidebar-link">
+        <i class="bi bi-patch-check-fill text-warning"></i> Buyer Verification
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link active">
+        <i class="bi bi-people-fill"></i> User Management
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.categories') }}" class="sidebar-link">
+        <i class="bi bi-tags-fill text-success"></i> Garbage Categories
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-perforated-fill"></i> All Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.transactions') }}" class="sidebar-link">
+        <i class="bi bi-cash-stack text-success"></i> Transactions & Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.complaints') }}" class="sidebar-link">
+        <i class="bi bi-shield-exclamation text-danger"></i> Complaints & Disputes
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.reports') }}" class="sidebar-link">
+        <i class="bi bi-file-earmark-bar-graph"></i> Recycling Reports
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">User Directory & Access Control</h4>
+    <p class="text-muted small mb-0">Manage platform accounts for waste sellers and registered scrap dealers.</p>
+</div>
+
+<!-- Filters & Search -->
+<div class="ecosell-card p-3 mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-7">
+            <ul class="nav nav-pills small gap-1">
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill py-1 px-3 {% if current_role == 'all' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.users', role='all', q=search_query) }}">All Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill py-1 px-3 {% if current_role == 'seller' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.users', role='seller', q=search_query) }}">Sellers</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill py-1 px-3 {% if current_role == 'buyer' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.users', role='buyer', q=search_query) }}">Buyers / Dealers</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-5">
+            <form method="GET" action="{{ url_for('admin.users') }}" class="d-flex">
+                <input type="hidden" name="role" value="{{ current_role }}">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control form-control-sm border-end-0" placeholder="Search name, email, phone..." value="{{ search_query }}">
+                    <button class="btn btn-outline-secondary btn-sm border-start-0" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="ecosell-card p-4">
+    {% if users %}
+    <div class="table-responsive">
+        <table class="table-ecosell">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="fw-bold text-dark">#USR-{{ u.id }}</td>
+                    <td>
+                        <strong class="text-dark">{{ u.full_name }}</strong>
+                        {% if u.is_buyer and u.buyer_profile %}
+                        <div class="text-muted small">{{ u.buyer_profile.shop_name }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.phone }}</td>
+                    <td>
+                        <span class="badge {% if u.role == 'seller' %}bg-success{% else %}bg-primary{% endif %} rounded-pill">
+                            {{ u.role | capitalize }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge {% if u.account_status == 'active' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-danger-subtle text-danger border border-danger-subtle{% endif %}">
+                            {{ u.account_status | capitalize }}
+                        </span>
+                    </td>
+                    <td class="text-muted small">{{ u.created_at | date_format }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" onsubmit="return confirm('Toggle status for {{ u.email }}?');">
+                            {% if u.account_status == 'active' %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                Suspend
+                            </button>
+                            {% else %}
+                            <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                Activate
+                            </button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-people empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">No Users Found</h6>
+        <p class="text-muted small mb-0">No accounts matched your search criteria.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

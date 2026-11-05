@@ -1,0 +1,305 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Buyer Dashboard - EcoSell{% endblock %}
+{% block page_title %}Scrap Dealer / Buyer Dashboard{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Buyer Operations</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.dashboard') }}" class="sidebar-link active">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.browse') }}" class="sidebar-link">
+        <i class="bi bi-search text-info"></i> Browse Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.my_offers') }}" class="sidebar-link">
+        <i class="bi bi-tag-fill text-warning"></i> My Bids & Offers
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.manage_prices') }}" class="sidebar-link">
+        <i class="bi bi-currency-rupee text-success"></i> Set Purchasing Rates
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Scheduled Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.purchases') }}" class="sidebar-link">
+        <i class="bi bi-receipt"></i> Purchase History
+    </a>
+</li>
+<li class="sidebar-heading">Shop Reputation</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.reviews') }}" class="sidebar-link">
+        <i class="bi bi-star-fill text-warning"></i> Customer Reviews
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.profile') }}" class="sidebar-link">
+        <i class="bi bi-shop"></i> Shop Profile
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<!-- Verification Banner if Pending -->
+{% if not current_user.is_verified_buyer %}
+<div class="alert alert-warning shadow-sm border-0 d-flex align-items-center mb-4 p-3 rounded-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+    <div>
+        <strong class="d-block">Account Verification Under Review</strong>
+        <span class="small">Our admin team is verifying your scrap business credentials. You can browse garbage tickets and configure your category purchasing rate list in the meantime.</span>
+    </div>
+</div>
+{% endif %}
+
+<!-- Header & Quick Action -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">
+            {{ profile.shop_name if profile else current_user.full_name }}
+            {% if current_user.is_verified_buyer %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill fs-6 ms-2 align-middle">
+                    <i class="bi bi-patch-check-fill me-1"></i> Verified Dealer
+                </span>
+            {% endif %}
+        </h4>
+        <p class="text-muted small mb-0">Browse real-time scrap listings from households, place competitive rates, and grow your collection volume.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('buyer.browse') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-search me-1"></i> Browse Scrap Tickets
+        </a>
+        <a href="{{ url_for('buyer.manage_prices') }}" class="btn btn-outline-success rounded-pill px-3">
+            <i class="bi bi-currency-rupee me-1"></i> Update Rates
+        </a>
+    </div>
+</div>
+
+<!-- 6 Real Dynamic Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-2">
+        <div class="stat-card">
+            <div>
+                <div class="stat-title">Available Tickets</div>
+                <div class="stat-value">{{ available_tickets }}</div>
+                <div class="small text-muted mt-1"><i class="bi bi-broadcast text-success"></i> Open to bids</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-warning">
+            <div>
+                <div class="stat-title">Offers Placed</div>
+                <div class="stat-value">{{ offers_submitted }}</div>
+                <div class="small text-warning mt-1"><i class="bi bi-tag"></i> Total bids</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-success">
+            <div>
+                <div class="stat-title">Accepted Bids</div>
+                <div class="stat-value text-success">{{ accepted_offers }}</div>
+                <div class="small text-success mt-1"><i class="bi bi-check2-circle"></i> Won deals</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-info">
+            <div>
+                <div class="stat-title">Due Pickups</div>
+                <div class="stat-value text-info">{{ scheduled_pickups }}</div>
+                <div class="small text-info mt-1"><i class="bi bi-truck"></i> Scheduled</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-dark">
+            <div>
+                <div class="stat-title">Total Purchased</div>
+                <div class="stat-value">{{ total_purchased_kg | int }} kg</div>
+                <div class="small text-muted mt-1"><i class="bi bi-box-seam"></i> Weighed scrap</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-success">
+            <div>
+                <div class="stat-title">Total Payouts</div>
+                <div class="stat-value text-dark" style="font-size: 1.4rem;">{{ total_spent | currency }}</div>
+                <div class="small text-success mt-1"><i class="bi bi-cash-stack"></i> Paid to sellers</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts & Upcoming Collections -->
+<div class="row g-4 mb-4">
+    <!-- Category Scrap Composition Chart -->
+    <div class="col-lg-5">
+        <div class="ecosell-card p-4 h-100">
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill text-success me-2"></i> Purchased Scrap Breakdown (KG)</h6>
+            <div style="height: 250px; position: relative;">
+                <canvas id="buyerCategoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Pickups -->
+    <div class="col-lg-7">
+        <div class="ecosell-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-calendar-check text-primary me-2"></i> Pending Pickups to Collect</h6>
+                <a href="{{ url_for('buyer.pickups') }}" class="small text-success fw-semibold">View All Pickups</a>
+            </div>
+
+            {% if active_pickups %}
+            <div class="table-responsive">
+                <table class="table-ecosell">
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Seller / Location</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in active_pickups %}
+                        <tr>
+                            <td>
+                                <strong class="text-dark">{{ p.ticket.ticket_number }}</strong>
+                                <div class="text-muted small">{{ p.ticket.category.category_name }} ({{ p.ticket.estimated_quantity }} kg)</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">{{ p.seller.full_name }}</div>
+                                <div class="text-muted small text-truncate" style="max-width: 170px;">{{ p.ticket.pickup_address }}</div>
+                            </td>
+                            <td>
+                                <div>{{ p.pickup_date | date_format }}</div>
+                                <span class="badge bg-light text-dark border">{{ p.pickup_time }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-status 
+                                    {% if p.pickup_status == 'Completed' %}badge-completed
+                                    {% elif p.pickup_status == 'Cancelled' %}badge-cancelled
+                                    {% else %}badge-scheduled{% endif %}">
+                                    {{ p.pickup_status }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('buyer.pickups') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                                    Manage
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state py-4">
+                <i class="bi bi-calendar-x empty-state-icon" style="font-size: 2.2rem;"></i>
+                <p class="text-muted small mb-0">No pickups currently due. Browse open tickets and place competitive bids to secure collections.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Fresh Open Garbage Tickets Table -->
+<div class="ecosell-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-broadcast text-danger me-2"></i> Recently Listed Scrap Batches</h6>
+            <span class="text-muted small">Open for competitive bidding right now</span>
+        </div>
+        <a href="{{ url_for('buyer.browse') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+            Browse All ({{ available_tickets }})
+        </a>
+    </div>
+
+    {% if recent_available %}
+    <div class="table-responsive">
+        <table class="table-ecosell">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Category</th>
+                    <th>Est. Weight</th>
+                    <th>Condition</th>
+                    <th>Location</th>
+                    <th>Preferred Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in recent_available %}
+                <tr>
+                    <td class="fw-bold text-dark">{{ t.ticket_number }}</td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ t.category.category_name }}</span>
+                    </td>
+                    <td><strong class="text-success">{{ t.estimated_quantity }} kg</strong></td>
+                    <td><span class="badge bg-secondary">{{ t.garbage_condition }}</span></td>
+                    <td>{{ t.city }} ({{ t.pincode }})</td>
+                    <td>{{ t.preferred_pickup_date | date_format }}</td>
+                    <td>
+                        <a href="{{ url_for('buyer.ticket_detail', ticket_id=t.id) }}" class="btn btn-sm btn-success rounded-pill px-3">
+                            <i class="bi bi-tag me-1"></i> Place Bid
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-check2-all empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">All Caught Up!</h6>
+        <p class="text-muted small mb-0">No new open tickets available at this exact moment. Please check back shortly.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('buyerCategoryChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ cat_labels | tojson }},
+                datasets: [{
+                    data: {{ cat_values | tojson }},
+                    backgroundColor: [
+                        '#10b981', '#0ea5e9', '#f59e0b', '#8b5cf6',
+                        '#ec4899', '#64748b', '#14b8a6', '#f97316'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

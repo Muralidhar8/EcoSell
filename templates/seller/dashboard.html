@@ -1,0 +1,278 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Seller Dashboard - EcoSell{% endblock %}
+{% block page_title %}Seller Dashboard{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Seller Menu</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.dashboard') }}" class="sidebar-link active">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.create_ticket') }}" class="sidebar-link">
+        <i class="bi bi-plus-circle-fill text-success"></i> Create Selling Ticket
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.my_tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-detailed-fill"></i> My Selling Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Pickup Tracking
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.earnings') }}" class="sidebar-link">
+        <i class="bi bi-wallet2 text-warning"></i> My Earnings
+    </a>
+</li>
+<li class="sidebar-heading">Account</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.complaints') }}" class="sidebar-link">
+        <i class="bi bi-chat-square-dots"></i> Help & Complaints
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.profile') }}" class="sidebar-link">
+        <i class="bi bi-gear"></i> Profile Settings
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<!-- Welcome & Quick Action Bar -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">Welcome, {{ current_user.full_name }}! 👋</h4>
+        <p class="text-muted small mb-0">Turn your recyclable scrap into cash with certified doorstep collectors.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('seller.create_ticket') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Create Garbage Ticket
+        </a>
+    </div>
+</div>
+
+<!-- 5 Real Dynamic Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-title">Total Tickets</div>
+                <div class="stat-value">{{ total_tickets }}</div>
+                <div class="small text-muted mt-1"><i class="bi bi-tags text-success"></i> Created so far</div>
+            </div>
+            <div class="stat-icon bg-primary-soft">
+                <i class="bi bi-ticket-perforated"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-info">
+            <div>
+                <div class="stat-title">Open Tickets</div>
+                <div class="stat-value">{{ open_tickets }}</div>
+                <div class="small text-info mt-1"><i class="bi bi-clock-history"></i> Awaiting offers</div>
+            </div>
+            <div class="stat-icon bg-info-soft">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-warning">
+            <div>
+                <div class="stat-title">Offers Received</div>
+                <div class="stat-value">{{ offers_received }}</div>
+                <div class="small text-warning mt-1"><i class="bi bi-tag"></i> From scrap dealers</div>
+            </div>
+            <div class="stat-icon bg-warning-soft">
+                <i class="bi bi-chat-quote"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-success">
+            <div>
+                <div class="stat-title">Total Earnings</div>
+                <div class="stat-value">{{ total_earnings | currency }}</div>
+                <div class="small text-success mt-1"><i class="bi bi-check-circle"></i> {{ completed_sales }} sales completed</div>
+            </div>
+            <div class="stat-icon bg-success-soft">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts & Active Pickups Row -->
+<div class="row g-4 mb-4">
+    <!-- Monthly Earnings Chart -->
+    <div class="col-lg-7">
+        <div class="ecosell-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up text-success me-2"></i> Monthly Earnings Analytics</h6>
+                <span class="badge bg-light text-muted border">INR (₹)</span>
+            </div>
+            <div style="height: 250px;">
+                <canvas id="sellerEarningsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Pickups -->
+    <div class="col-lg-5">
+        <div class="ecosell-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-truck text-primary me-2"></i> Pickup Schedule</h6>
+                <a href="{{ url_for('seller.pickups') }}" class="small text-success fw-semibold">View All</a>
+            </div>
+            {% if recent_pickups %}
+                <div class="d-flex flex-column gap-3">
+                    {% for pickup in recent_pickups %}
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark small">{{ pickup.ticket.ticket_number }}</span>
+                            <span class="badge badge-status 
+                                {% if pickup.pickup_status == 'Completed' %}badge-completed
+                                {% elif pickup.pickup_status == 'Cancelled' %}badge-cancelled
+                                {% else %}badge-scheduled{% endif %}">
+                                {{ pickup.pickup_status }}
+                            </span>
+                        </div>
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-shop text-primary me-1"></i> 
+                            {{ pickup.buyer.buyer_profile.shop_name if pickup.buyer.buyer_profile else pickup.buyer.full_name }}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+                            <span><i class="bi bi-calendar3 me-1"></i> {{ pickup.pickup_date | date_format }}</span>
+                            <span><i class="bi bi-clock me-1"></i> {{ pickup.pickup_time }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state py-4">
+                    <i class="bi bi-truck empty-state-icon" style="font-size: 2.2rem;"></i>
+                    <p class="text-muted small mb-0">No active pickups scheduled. Accept a buyer offer to schedule home pickup.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Selling Tickets Activity Table -->
+<div class="ecosell-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-muted me-2"></i> Recent Selling Tickets</h6>
+        <a href="{{ url_for('seller.my_tickets') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">View All Tickets</a>
+    </div>
+
+    {% if recent_tickets %}
+    <div class="table-responsive">
+        <table class="table-ecosell">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Category</th>
+                    <th>Est. Weight</th>
+                    <th>Created</th>
+                    <th>Offers</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in recent_tickets %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('seller.ticket_detail', ticket_id=t.id) }}" class="fw-bold text-dark">
+                            {{ t.ticket_number }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">
+                            {{ t.category.category_name }}
+                        </span>
+                    </td>
+                    <td>{{ t.estimated_quantity }} kg</td>
+                    <td class="text-muted small">{{ t.created_at | datetime_format }}</td>
+                    <td>
+                        <span class="badge bg-warning text-dark">
+                            {{ t.offers.count() }} offers
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-status 
+                            {% if t.status == 'Open' %}badge-open
+                            {% elif t.status == 'Completed' %}badge-completed
+                            {% elif t.status == 'Cancelled' %}badge-cancelled
+                            {% else %}badge-accepted{% endif %}">
+                            {{ t.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('seller.ticket_detail', ticket_id=t.id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                            View Offers
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-inbox empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">No Tickets Created Yet</h6>
+        <p class="text-muted small mb-3">You haven't listed any recyclable garbage tickets. List one now to start receiving bids.</p>
+        <a href="{{ url_for('seller.create_ticket') }}" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-plus-circle me-1"></i> Create First Ticket
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('sellerEarningsChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels | tojson }},
+                datasets: [{
+                    label: 'Earnings (₹)',
+                    data: {{ chart_values | tojson }},
+                    backgroundColor: '#10b981',
+                    borderRadius: 8,
+                    maxBarThickness: 45
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return '₹' + value; }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

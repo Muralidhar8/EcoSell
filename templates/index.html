@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}EcoSell - Turn Your Waste Into Wealth | Smart Recycling Marketplace{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-ecosell">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <div class="hero-badge">
+                    <i class="bi bi-patch-check-fill text-success"></i> India's Premier Recycling & Scrap Marketplace
+                </div>
+                <h1 class="display-4 fw-extrabold text-dark mb-3 lh-sm">
+                    Turn Your Waste <br>
+                    <span class="text-success">Into Wealth</span>
+                </h1>
+                <p class="lead text-muted mb-4 pe-lg-4">
+                    EcoSell connects environmentally conscious households, housing societies, and offices directly with verified scrap dealers and recycling businesses. List your recyclable waste, compare competitive bids, and schedule transparent doorstep collection with instant payouts.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="{{ url_for('auth.register_seller') }}" class="btn btn-primary btn-lg rounded-pill px-4 shadow">
+                        <i class="bi bi-plus-circle me-2"></i> Sell Garbage Now
+                    </a>
+                    <a href="{{ url_for('auth.register_buyer') }}" class="btn btn-outline-dark btn-lg rounded-pill px-4">
+                        <i class="bi bi-shop me-2"></i> Register as Scrap Dealer
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-4 text-muted small pt-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check text-success fs-5"></i>
+                        <span>Verified Buyers</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-lightning-charge text-warning fs-5"></i>
+                        <span>Instant UPI/Cash</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-geo-alt text-primary fs-5"></i>
+                        <span>Free Home Pickup</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-lg rounded-4 p-4 bg-white position-relative">
+                    <div class="d-flex align-items-center justify-content-between pb-3 border-bottom mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">
+                                Live Marketplace
+                            </span>
+                        </div>
+                        <span class="text-muted small">Updated Just Now</span>
+                    </div>
+
+                    <!-- Live Sample Bid Comparison Showcase -->
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small text-dark"><i class="bi bi-newspaper text-primary me-1"></i> Newspapers (25 kg)</span>
+                            <span class="badge bg-warning text-dark">3 Offers Received</span>
+                        </div>
+                        <div class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i> Bandra West, Mumbai</div>
+                        
+                        <div class="bg-white p-2 rounded border mb-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold small">GreenScrap Traders</div>
+                                <div class="text-warning small"><i class="bi bi-star-fill"></i> 4.9 (124 reviews)</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-success">₹16.00 / kg</div>
+                                <span class="badge bg-success-subtle text-success small">Highest Bid</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-2 rounded border d-flex justify-content-between align-items-center opacity-75">
+                            <div>
+                                <div class="fw-semibold small">EcoRecycle Hub</div>
+                                <div class="text-warning small"><i class="bi bi-star-fill"></i> 4.8 (98 reviews)</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-dark">₹15.50 / kg</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 text-center">
+                        <div class="col-6">
+                            <div class="p-2 border rounded-3 bg-light">
+                                <div class="fw-bold text-dark fs-5">{{ total_sellers }}+</div>
+                                <div class="text-muted small">Active Sellers</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 border rounded-3 bg-light">
+                                <div class="fw-bold text-success fs-5">{{ total_buyers }}+</div>
+                                <div class="text-muted small">Scrap Dealers</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-white" id="how-it-works">
+    <div class="container py-4">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill mb-2">Simple 3-Step Process</span>
+            <h2 class="fw-bold text-dark">How EcoSell Works</h2>
+            <p class="text-muted">Effortless selling with full price transparency and doorstep pickup.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="ecosell-card p-4 text-center h-100 card-hover-elevate">
+                    <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-camera-fill fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">1. Create Selling Ticket</h5>
+                    <p class="text-muted small mb-0">
+                        Choose your recyclable category, estimate weight in kilograms, snap photos of your waste, and choose your preferred home pickup slot.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="ecosell-card p-4 text-center h-100 card-hover-elevate">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-tag-fill fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">2. Receive & Compare Offers</h5>
+                    <p class="text-muted small mb-0">
+                        Nearby certified scrap dealers bid competitive rates per kilogram. Compare buyer price lists, seller ratings, and select the best offer with 1-click.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="ecosell-card p-4 text-center h-100 card-hover-elevate">
+                    <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-cash-stack fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">3. Doorstep Pickup & Payout</h5>
+                    <p class="text-muted small mb-0">
+                        The scrap dealer visits your address, weighs materials on a certified digital scale, and pays you immediately via Cash or instant UPI.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Garbage Categories Section -->
+<section class="py-5 bg-light" id="categories">
+    <div class="container py-4">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill mb-2">Comprehensive Recyclables</span>
+            <h2 class="fw-bold text-dark">Predefined Garbage Categories</h2>
+            <p class="text-muted">We accept all major recyclable materials with transparent benchmark rates per kilogram.</p>
+        </div>
+
+        <div class="row g-4">
+            {% set category_icons = {
+                'Plastic': 'bi-cup-straw',
+                'Paper': 'bi-file-text',
+                'Newspapers': 'bi-newspaper',
+                'Cardboard': 'bi-box-seam',
+                'Iron': 'bi-hammer',
+                'Steel': 'bi-tools',
+                'Aluminium': 'bi-archive',
+                'Copper': 'bi-lightning',
+                'Glass': 'bi-cup',
+                'Electronic Waste': 'bi-laptop',
+                'Old Clothes': 'bi-bag',
+                'Other Recyclable Materials': 'bi-recycle'
+            } %}
+            
+            {% for cat in categories %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div>
+                        <div class="category-icon-wrapper">
+                            <i class="bi {{ category_icons.get(cat.category_name, 'bi-recycle') }}"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">{{ cat.category_name }}</h6>
+                        <p class="text-muted small mb-3 text-truncate-2" style="font-size: 0.8rem;">
+                            {{ cat.description or 'All clean recyclable materials.' }}
+                        </p>
+                    </div>
+                    <a href="{{ url_for('auth.register_seller') }}" class="btn btn-outline-success btn-sm w-100 rounded-pill">
+                        Sell {{ cat.category_name }}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="py-5 bg-white" id="benefits">
+    <div class="container py-4">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6">
+                <div class="p-4 p-md-5 bg-success-subtle rounded-4 h-100">
+                    <span class="badge bg-success text-white px-3 py-1 rounded-pill mb-3">For Households & Sellers</span>
+                    <h3 class="fw-bold text-dark mb-4">Why Sellers Choose EcoSell</h3>
+                    <div class="d-flex gap-3 mb-3">
+                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Best Competitive Price Bidding</h6>
+                            <p class="text-muted small mb-0">Never settle for arbitrary scrap rates. Multiple dealers compete for your waste.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Convenient Doorstep Collection</h6>
+                            <p class="text-muted small mb-0">Choose your preferred date & time. No need to lug heavy scrap to physical yards.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Digital Precision Weighing & Instant Payment</h6>
+                            <p class="text-muted small mb-0">Accurate physical weighing and instant transfers through UPI, cash or bank transfer.</p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('auth.register_seller') }}" class="btn btn-success mt-2 rounded-pill px-4">
+                        Start Selling Today
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="p-4 p-md-5 bg-primary-subtle rounded-4 h-100">
+                    <span class="badge bg-primary text-white px-3 py-1 rounded-pill mb-3">For Scrap Dealers & Buyers</span>
+                    <h3 class="fw-bold text-dark mb-4">Why Buyers Grow with EcoSell</h3>
+                    <div class="d-flex gap-3 mb-3">
+                        <i class="bi bi-check-circle-fill text-primary fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Steady Direct-Source Supply</h6>
+                            <p class="text-muted small mb-0">Access high volumes of pre-sorted household and commercial scrap in your locality.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <i class="bi bi-check-circle-fill text-primary fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Flexible Rate Customization</h6>
+                            <p class="text-muted small mb-0">Set your benchmark category rates and dynamically submit custom bids on large lots.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <i class="bi bi-check-circle-fill text-primary fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Verified Marketplace Reputation</h6>
+                            <p class="text-muted small mb-0">Build your digital trust badge, collect positive ratings, and expand service areas.</p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('auth.register_buyer') }}" class="btn btn-primary mt-2 rounded-pill px-4">
+                        Join as Verified Dealer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Environmental Impact Statistics -->
+<section class="py-5 bg-dark text-white" id="impact">
+    <div class="container py-4 text-center">
+        <span class="badge bg-success text-white px-3 py-1 rounded-pill mb-2">Measurable Ecological Value</span>
+        <h2 class="fw-bold text-white mb-2">Our Collective Impact on Planet Earth</h2>
+        <p class="text-white-50 max-w-700 mx-auto mb-5">
+            Every kilogram of waste recycled through EcoSell diverts pollution from municipal landfills, saves pristine natural resources, and lowers greenhouse gas emissions.
+        </p>
+
+        <div class="row g-4">
+            <div class="col-6 col-md-3">
+                <div class="p-4 bg-secondary bg-opacity-25 rounded-4 border border-secondary border-opacity-25">
+                    <i class="bi bi-recycle text-success display-5 mb-2 d-block"></i>
+                    <div class="display-6 fw-bold text-white mb-1">{{ total_recycled_kg | int }} kg</div>
+                    <div class="text-white-50 small">Recycled Materials Diverted</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-4 bg-secondary bg-opacity-25 rounded-4 border border-secondary border-opacity-25">
+                    <i class="bi bi-currency-rupee text-warning display-5 mb-2 d-block"></i>
+                    <div class="display-6 fw-bold text-white mb-1">{{ total_payouts | currency }}</div>
+                    <div class="text-white-50 small">Paid Directly to Sellers</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-4 bg-secondary bg-opacity-25 rounded-4 border border-secondary border-opacity-25">
+                    <i class="bi bi-tree text-success display-5 mb-2 d-block"></i>
+                    <div class="display-6 fw-bold text-white mb-1">{{ (total_recycled_kg / 15) | int }}</div>
+                    <div class="text-white-50 small">Equivalent Trees Conserved</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-4 bg-secondary bg-opacity-25 rounded-4 border border-secondary border-opacity-25">
+                    <i class="bi bi-cloud-minus text-info display-5 mb-2 d-block"></i>
+                    <div class="display-6 fw-bold text-white mb-1">{{ co2_offset_kg }} kg</div>
+                    <div class="text-white-50 small">CO2 Emissions Offset</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-success text-white text-center">
+    <div class="container py-4">
+        <h2 class="display-6 fw-bold mb-3">Ready to Turn Your Recyclables Into Cash?</h2>
+        <p class="lead text-white-75 max-w-700 mx-auto mb-4">
+            Join thousands of smart homeowners, apartment managers, and scrap businesses building a cleaner, greener India.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('auth.register_seller') }}" class="btn btn-light btn-lg text-success fw-bold rounded-pill px-5 shadow">
+                Create Free Seller Account
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                Sign In
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

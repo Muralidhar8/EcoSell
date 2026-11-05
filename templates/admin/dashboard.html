@@ -1,0 +1,287 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Admin Dashboard - EcoSell Control Center{% endblock %}
+{% block page_title %}Admin Control Center{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Platform Administration</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link active">
+        <i class="bi bi-speedometer2"></i> Overview Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.buyers_verification') }}" class="sidebar-link">
+        <i class="bi bi-patch-check-fill text-warning"></i> Buyer Verification
+        {% if pending_buyers > 0 %}
+        <span class="badge bg-danger rounded-pill ms-auto">{{ pending_buyers }}</span>
+        {% endif %}
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+        <i class="bi bi-people-fill"></i> User Management
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.categories') }}" class="sidebar-link">
+        <i class="bi bi-tags-fill text-success"></i> Garbage Categories
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-perforated-fill"></i> All Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.transactions') }}" class="sidebar-link">
+        <i class="bi bi-cash-stack text-success"></i> Transactions & Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.complaints') }}" class="sidebar-link">
+        <i class="bi bi-shield-exclamation text-danger"></i> Complaints & Disputes
+        {% if open_complaints > 0 %}
+        <span class="badge bg-warning text-dark rounded-pill ms-auto">{{ open_complaints }}</span>
+        {% endif %}
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.reports') }}" class="sidebar-link">
+        <i class="bi bi-file-earmark-bar-graph"></i> Recycling Reports
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">EcoSell Platform Operations & Analytics</h4>
+        <p class="text-muted small mb-0">Live monitoring of waste recycling, dealer verification, disputes, and marketplace transactions.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin.buyers_verification') }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-patch-check me-1"></i> Verify Dealers ({{ pending_buyers }})
+        </a>
+        <a href="{{ url_for('admin.reports') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+            <i class="bi bi-file-earmark-arrow-down me-1"></i> Reports
+        </a>
+    </div>
+</div>
+
+<!-- 6 Real Dynamic Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-2">
+        <div class="stat-card">
+            <div>
+                <div class="stat-title">Sellers</div>
+                <div class="stat-value text-success">{{ total_sellers }}</div>
+                <div class="small text-muted mt-1">Households/Offices</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-info">
+            <div>
+                <div class="stat-title">Scrap Buyers</div>
+                <div class="stat-value text-info">{{ total_buyers }}</div>
+                <div class="small text-muted mt-1">{{ pending_buyers }} pending review</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-warning">
+            <div>
+                <div class="stat-title">Total Tickets</div>
+                <div class="stat-value text-dark">{{ total_tickets }}</div>
+                <div class="small text-muted mt-1">Listed batches</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-success">
+            <div>
+                <div class="stat-title">Collections</div>
+                <div class="stat-value text-success">{{ completed_collections }}</div>
+                <div class="small text-success mt-1">100% Fulfilled</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-info">
+            <div>
+                <div class="stat-title">Recycled KG</div>
+                <div class="stat-value text-info">{{ total_collected_kg | int }} kg</div>
+                <div class="small text-muted mt-1">Diverted waste</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card stat-success">
+            <div>
+                <div class="stat-title">Total Volume</div>
+                <div class="stat-value text-success" style="font-size: 1.35rem;">{{ total_transactions_amount | currency }}</div>
+                <div class="small text-success mt-1">Settled payouts</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Monthly Recycling Weight Chart -->
+    <div class="col-lg-8">
+        <div class="ecosell-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up-arrow text-success me-2"></i> Monthly Scrap Collected (KG)</h6>
+                <span class="badge bg-light text-dark border">Audited Metrics</span>
+            </div>
+            <div style="height: 260px;">
+                <canvas id="adminMonthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Breakdown Chart -->
+    <div class="col-lg-4">
+        <div class="ecosell-card p-4 h-100">
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart text-primary me-2"></i> Material Distribution</h6>
+            <div style="height: 260px; position: relative;">
+                <canvas id="adminCategoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lower Grids: Recent Transactions & New Users -->
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="ecosell-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-cash-stack text-success me-2"></i> Recent Platform Payouts</h6>
+                <a href="{{ url_for('admin.transactions') }}" class="small text-success fw-semibold">View All</a>
+            </div>
+            {% if recent_transactions %}
+            <div class="table-responsive">
+                <table class="table-ecosell">
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Buyer</th>
+                            <th>Seller</th>
+                            <th>Weight</th>
+                            <th>Payout</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in recent_transactions %}
+                        <tr>
+                            <td class="fw-bold text-dark">{{ t.ticket.ticket_number }}</td>
+                            <td>{{ t.buyer.buyer_profile.shop_name if t.buyer.buyer_profile else t.buyer.full_name }}</td>
+                            <td>{{ t.seller.full_name }}</td>
+                            <td>{{ t.actual_weight }} kg</td>
+                            <td><strong class="text-success">{{ t.total_amount | currency }}</strong></td>
+                            <td class="text-muted small">{{ t.transaction_date | date_format }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4 small">No transactions recorded yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="ecosell-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-people text-primary me-2"></i> Newly Registered Users</h6>
+                <a href="{{ url_for('admin.users') }}" class="small text-primary fw-semibold">View All</a>
+            </div>
+            {% if recent_users %}
+            <div class="d-flex flex-column gap-2">
+                {% for u in recent_users %}
+                <div class="p-2 bg-light rounded-3 d-flex justify-content-between align-items-center small">
+                    <div>
+                        <strong class="text-dark d-block">{{ u.full_name }}</strong>
+                        <span class="text-muted" style="font-size: 0.72rem;">{{ u.email }}</span>
+                    </div>
+                    <div>
+                        <span class="badge {% if u.role == 'seller' %}bg-success{% else %}bg-primary{% endif %} rounded-pill">
+                            {{ u.role | capitalize }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4 small">No users registered yet.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Monthly Weight Chart
+    const ctxMonthly = document.getElementById('adminMonthlyChart');
+    if (ctxMonthly) {
+        new Chart(ctxMonthly, {
+            type: 'bar',
+            data: {
+                labels: {{ month_labels | tojson }},
+                datasets: [{
+                    label: 'Recycled Weight (kg)',
+                    data: {{ month_weights | tojson }},
+                    backgroundColor: '#10b981',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(val) { return val + ' kg'; }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Category Composition Doughnut Chart
+    const ctxCat = document.getElementById('adminCategoryChart');
+    if (ctxCat) {
+        new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: {{ cat_labels | tojson }},
+                datasets: [{
+                    data: {{ cat_values | tojson }},
+                    backgroundColor: [
+                        '#10b981', '#0ea5e9', '#f59e0b', '#8b5cf6',
+                        '#ec4899', '#64748b', '#14b8a6', '#f97316'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

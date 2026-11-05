@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Register as Seller - EcoSell Marketplace{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-7">
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 bg-white">
+                <div class="text-center mb-4">
+                    <div class="brand-leaf-icon mx-auto mb-3" style="width: 52px; height: 52px;">
+                        <i class="bi bi-house-door fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark">Register as Garbage Seller</h3>
+                    <p class="text-muted small">For households, apartments, offices and institutions selling recyclable scrap</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('auth.register_seller') }}">
+                    <h6 class="text-uppercase fw-bold text-success small mb-3">1. Personal Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark">Full Name *</label>
+                            <input type="text" name="full_name" class="form-control" placeholder="Rahul Sharma" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark">Phone Number *</label>
+                            <input type="tel" name="phone" class="form-control" placeholder="+91 9876543210" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-dark">Email Address *</label>
+                            <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark">Password *</label>
+                            <input type="password" name="password" class="form-control" placeholder="Min. 6 characters" minlength="6" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark">Confirm Password *</label>
+                            <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter password" minlength="6" required>
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase fw-bold text-success small mb-3">2. Default Pickup Address</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-dark">Street Address / Society / Flat *</label>
+                            <textarea name="address" class="form-control" rows="2" placeholder="Flat 402, Green Meadows Apartment, MG Road" required></textarea>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold text-dark">City *</label>
+                            <input type="text" name="city" class="form-control" placeholder="Mumbai" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-dark">State *</label>
+                            <input type="text" name="state" class="form-control" placeholder="Maharashtra" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold text-dark">PIN Code *</label>
+                            <input type="text" name="pincode" class="form-control" placeholder="400001" required>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="termsCheck" required checked>
+                        <label class="form-check-label small text-muted" for="termsCheck">
+                            I agree to the EcoSell Terms of Service and accurate garbage disclosure policy.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 rounded-pill fw-semibold shadow-sm mb-3">
+                        Create Seller Account
+                    </button>
+                </form>
+
+                <div class="text-center text-muted small">
+                    Already registered? <a href="{{ url_for('auth.login') }}" class="text-success fw-bold">Sign In</a> | 
+                    Are you a scrap dealer? <a href="{{ url_for('auth.register_buyer') }}" class="text-primary fw-bold">Register as Buyer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

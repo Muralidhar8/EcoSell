@@ -1,0 +1,242 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Scheduled Pickups - EcoSell{% endblock %}
+{% block page_title %}Scheduled Home Pickups & Weigh-Ins{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Buyer Operations</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.browse') }}" class="sidebar-link">
+        <i class="bi bi-search text-info"></i> Browse Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.my_offers') }}" class="sidebar-link">
+        <i class="bi bi-tag-fill text-warning"></i> My Bids & Offers
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.manage_prices') }}" class="sidebar-link">
+        <i class="bi bi-currency-rupee text-success"></i> Set Purchasing Rates
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.pickups') }}" class="sidebar-link active">
+        <i class="bi bi-truck"></i> Scheduled Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.purchases') }}" class="sidebar-link">
+        <i class="bi bi-receipt"></i> Purchase History
+    </a>
+</li>
+<li class="sidebar-heading">Shop Reputation</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.reviews') }}" class="sidebar-link">
+        <i class="bi bi-star-fill text-warning"></i> Customer Reviews
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.profile') }}" class="sidebar-link">
+        <i class="bi bi-shop"></i> Shop Profile
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Doorstep Collection Appointments</h4>
+    <p class="text-muted small mb-0">Update transit status, physically weigh materials upon arrival, and record final payments.</p>
+</div>
+
+{% if pickups %}
+<div class="row g-4">
+    {% for p in pickups %}
+    <div class="col-lg-6">
+        <div class="ecosell-card p-4 h-100 card-hover-elevate d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="badge bg-light text-dark border mb-1">{{ p.ticket.category.category_name }}</span>
+                        <h5 class="fw-bold text-dark mb-0">
+                            <a href="{{ url_for('buyer.ticket_detail', ticket_id=p.ticket.id) }}" class="text-dark">
+                                {{ p.ticket.ticket_number }}
+                            </a>
+                        </h5>
+                    </div>
+                    <span class="badge badge-status 
+                        {% if p.pickup_status == 'Completed' %}badge-completed
+                        {% elif p.pickup_status == 'Cancelled' %}badge-cancelled
+                        {% else %}badge-scheduled{% endif %}">
+                        {{ p.pickup_status }}
+                    </span>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 small mb-3">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <span class="text-muted d-block">Seller Name:</span>
+                            <strong class="text-dark">{{ p.seller.full_name }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted d-block">Seller Phone:</span>
+                            <a href="tel:{{ p.seller.phone }}" class="text-success fw-bold">{{ p.seller.phone }}</a>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted d-block">Pickup Date:</span>
+                            <strong class="text-dark">{{ p.pickup_date | date_format }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted d-block">Time Slot:</span>
+                            <span class="text-dark">{{ p.pickup_time }}</span>
+                        </div>
+                        <div class="col-12 border-top pt-2 mt-1">
+                            <span class="text-muted d-block">Doorstep Address:</span>
+                            <div class="text-dark">{{ p.ticket.pickup_address }}, {{ p.ticket.city }} - {{ p.ticket.pincode }}</div>
+                        </div>
+                        <div class="col-6 border-top pt-2 mt-1">
+                            <span class="text-muted d-block">Estimated Weight:</span>
+                            <span class="text-dark">{{ p.ticket.estimated_quantity }} kg ({{ p.ticket.garbage_condition }})</span>
+                        </div>
+                        <div class="col-6 border-top pt-2 mt-1">
+                            <span class="text-muted d-block">Accepted Rate:</span>
+                            {% set accepted_bid = p.ticket.offers.filter_by(buyer_id=current_user.id, offer_status='Accepted').first() %}
+                            <strong class="text-success fs-6">
+                                ₹{{ accepted_bid.offered_price_per_kg if accepted_bid else '0.00' }}/kg
+                            </strong>
+                        </div>
+                        {% if p.actual_weight %}
+                        <div class="col-6 border-top pt-2 mt-1">
+                            <span class="text-muted d-block">Actual Weighed:</span>
+                            <strong class="text-dark">{{ p.actual_weight }} kg</strong>
+                        </div>
+                        <div class="col-6 border-top pt-2 mt-1">
+                            <span class="text-muted d-block">Total Paid:</span>
+                            <strong class="text-success fs-5">{{ p.ticket.transaction.total_amount | currency if p.ticket.transaction else '-' }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                {% if p.pickup_status != 'Completed' and p.pickup_status != 'Cancelled' %}
+                <div class="border-top pt-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-sm-6">
+                            <!-- Status Update Form -->
+                            <form method="POST" action="{{ url_for('buyer.update_pickup_status', pickup_id=p.id) }}" class="d-flex gap-1">
+                                <select name="pickup_status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="Scheduled" {% if p.pickup_status == 'Scheduled' %}selected{% endif %}>1. Scheduled</option>
+                                    <option value="Buyer On The Way" {% if p.pickup_status == 'Buyer On The Way' %}selected{% endif %}>2. On The Way</option>
+                                    <option value="Arrived" {% if p.pickup_status == 'Arrived' %}selected{% endif %}>3. Arrived at Address</option>
+                                    <option value="Garbage Collected" {% if p.pickup_status == 'Garbage Collected' %}selected{% endif %}>4. Garbage Collected</option>
+                                    <option value="Cancelled" {% if p.pickup_status == 'Cancelled' %}selected{% endif %}>Cancel Pickup</option>
+                                </select>
+                            </form>
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <!-- Weigh & Finalize Payment Modal Trigger -->
+                            <button type="button" class="btn btn-success btn-sm rounded-pill px-3 w-100" data-bs-toggle="modal" data-bs-target="#weighModal{{ p.id }}">
+                                <i class="bi bi-calculator me-1"></i> Weigh & Pay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weigh & Pay Modal -->
+                <div class="modal fade" id="weighModal{{ p.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg rounded-4">
+                            <div class="modal-header bg-success text-white">
+                                <h5 class="modal-title fw-bold"><i class="bi bi-cash-coin me-2"></i> Record Weight & Finalize Payment</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('buyer.complete_pickup_and_pay', pickup_id=p.id) }}">
+                                <div class="modal-body p-4">
+                                    <div class="p-3 bg-light rounded-3 mb-3 small">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Ticket Number:</span>
+                                            <strong>{{ p.ticket.ticket_number }}</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Category:</span>
+                                            <span>{{ p.ticket.category.category_name }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Estimated Weight:</span>
+                                            <span>{{ p.ticket.estimated_quantity }} kg</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Accepted Rate per KG:</span>
+                                            <strong class="text-success fs-6" id="acceptedRateValue" data-rate="{{ accepted_bid.offered_price_per_kg if accepted_bid else 0 }}">
+                                                ₹{{ accepted_bid.offered_price_per_kg if accepted_bid else 0 }}/kg
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-dark">Verified Actual Weight (Kilograms) *</label>
+                                        <div class="input-group">
+                                            <input type="number" step="0.05" min="0.1" name="actual_weight" id="actualWeightInput" class="form-control form-control-lg fw-bold text-dark" placeholder="e.g. 24.5" required>
+                                            <span class="input-group-text bg-light">kg</span>
+                                        </div>
+                                        <div class="form-text small">Enter the exact reading from your physical digital scale.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-dark">Payment Method Given to Seller *</label>
+                                        <select name="payment_method" class="form-select" required>
+                                            <option value="Cash" selected>Cash Payment (Paid in Hand)</option>
+                                            <option value="UPI">UPI Transfer (Google Pay / PhonePe / Paytm)</option>
+                                            <option value="Online">Online Bank Transfer</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Live Payout Display -->
+                                    <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle mb-3 text-center">
+                                        <div class="small text-muted mb-1">Calculated Final Payment Amount:</div>
+                                        <div class="fs-3 fw-bold text-success" id="finalPayoutDisplay">₹0.00</div>
+                                        <div class="text-muted small">Actual Weight × ₹{{ accepted_bid.offered_price_per_kg if accepted_bid else 0 }}/kg</div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold text-dark">Collection Notes (Optional)</label>
+                                        <textarea name="collection_notes" class="form-control form-control-sm" rows="2" placeholder="e.g. Weighed using digital scale. Clean scrap collected."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer p-3 bg-light">
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold shadow-sm">
+                                        <i class="bi bi-check2-circle me-1"></i> Confirm Payment & Complete
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="border-top pt-2 text-end text-muted small">
+                    <i class="bi bi-patch-check-fill text-success me-1"></i> Transaction finalized and marked complete.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state py-5">
+    <i class="bi bi-calendar-x empty-state-icon"></i>
+    <h5 class="fw-bold text-dark">No Scheduled Collections</h5>
+    <p class="text-muted small mb-3">When sellers accept your bids, their home collection appointments will be displayed here for fulfillment.</p>
+    <a href="{{ url_for('buyer.browse') }}" class="btn btn-primary rounded-pill px-4">Browse Garbage Tickets</a>
+</div>
+{% endif %}
+{% endblock %}
+

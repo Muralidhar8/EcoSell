@@ -1,0 +1,155 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}My Earnings & Transactions - EcoSell{% endblock %}
+{% block page_title %}My Earnings & Transactions{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Seller Menu</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.create_ticket') }}" class="sidebar-link">
+        <i class="bi bi-plus-circle-fill text-success"></i> Create Selling Ticket
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.my_tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-detailed-fill"></i> My Selling Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Pickup Tracking
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.earnings') }}" class="sidebar-link active">
+        <i class="bi bi-wallet2 text-warning"></i> My Earnings
+    </a>
+</li>
+<li class="sidebar-heading">Account</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.complaints') }}" class="sidebar-link">
+        <i class="bi bi-chat-square-dots"></i> Help & Complaints
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.profile') }}" class="sidebar-link">
+        <i class="bi bi-gear"></i> Profile Settings
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Financial Earnings & Payment Receipts</h4>
+    <p class="text-muted small mb-0">Transparent records of every recyclable batch sold, verified weights, and instant payouts received.</p>
+</div>
+
+<!-- Summary Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card stat-success">
+            <div>
+                <div class="stat-title">Lifetime Earnings</div>
+                <div class="stat-value text-success">{{ total_earned | currency }}</div>
+                <div class="small text-muted mt-1"><i class="bi bi-check-circle-fill text-success"></i> 100% Verified Payouts</div>
+            </div>
+            <div class="stat-icon bg-success-soft">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-info">
+            <div>
+                <div class="stat-title">Recycled Scrap Volume</div>
+                <div class="stat-value text-info">{{ total_weight }} kg</div>
+                <div class="small text-muted mt-1"><i class="bi bi-recycle text-info"></i> Diverted from landfills</div>
+            </div>
+            <div class="stat-icon bg-info-soft">
+                <i class="bi bi-box-seam"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-dark">
+            <div>
+                <div class="stat-title">Completed Sales</div>
+                <div class="stat-value text-dark">{{ transactions | length }}</div>
+                <div class="small text-muted mt-1"><i class="bi bi-receipt text-dark"></i> Recorded receipts</div>
+            </div>
+            <div class="stat-icon bg-dark-soft">
+                <i class="bi bi-receipt"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="ecosell-card p-4">
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-journal-text text-muted me-2"></i> Payment History</h5>
+    {% if transactions %}
+    <div class="table-responsive">
+        <table class="table-ecosell">
+            <thead>
+                <tr>
+                    <th>Txn ID</th>
+                    <th>Ticket Ref</th>
+                    <th>Category</th>
+                    <th>Buyer / Dealer</th>
+                    <th>Actual Weight</th>
+                    <th>Agreed Rate</th>
+                    <th>Total Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td class="fw-bold text-dark">#TXN-{{ t.id }}</td>
+                    <td>
+                        <a href="{{ url_for('seller.ticket_detail', ticket_id=t.ticket.id) }}" class="fw-semibold text-success">
+                            {{ t.ticket.ticket_number }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">
+                            {{ t.ticket.category.category_name }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ t.buyer.buyer_profile.shop_name if t.buyer.buyer_profile else t.buyer.full_name }}
+                    </td>
+                    <td><strong>{{ t.actual_weight }} kg</strong></td>
+                    <td>₹{{ t.price_per_kg }}/kg</td>
+                    <td><strong class="text-success fs-6">{{ t.total_amount | currency }}</strong></td>
+                    <td>
+                        <span class="badge bg-secondary">{{ t.payment_method }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                            <i class="bi bi-check-circle-fill me-1"></i> {{ t.payment_status }}
+                        </span>
+                    </td>
+                    <td class="text-muted small">{{ t.transaction_date | datetime_format }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-wallet2 empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">No Completed Transactions Yet</h6>
+        <p class="text-muted small mb-0">Once a scrap dealer collects your materials and records payment, receipts will be permanently recorded here.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,130 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Garbage Categories - EcoSell Admin{% endblock %}
+{% block page_title %}Recyclable Garbage Categories{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Platform Administration</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i> Overview Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.buyers_verification') }}" class="sidebar-link">
+        <i class="bi bi-patch-check-fill text-warning"></i> Buyer Verification
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+        <i class="bi bi-people-fill"></i> User Management
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.categories') }}" class="sidebar-link active">
+        <i class="bi bi-tags-fill text-success"></i> Garbage Categories
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-perforated-fill"></i> All Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.transactions') }}" class="sidebar-link">
+        <i class="bi bi-cash-stack text-success"></i> Transactions & Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.complaints') }}" class="sidebar-link">
+        <i class="bi bi-shield-exclamation text-danger"></i> Complaints & Disputes
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.reports') }}" class="sidebar-link">
+        <i class="bi bi-file-earmark-bar-graph"></i> Recycling Reports
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="row g-4">
+    <!-- Add Category Form -->
+    <div class="col-lg-4">
+        <div class="ecosell-card p-4">
+            <h5 class="fw-bold text-dark mb-1">Add New Category</h5>
+            <p class="text-muted small mb-3">Define a new material classification for marketplace bidding.</p>
+
+            <form method="POST" action="{{ url_for('admin.categories') }}">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark">Category Name *</label>
+                    <input type="text" name="category_name" class="form-control" placeholder="e.g. Battery Scrap, Tin Cans" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-dark">Category Description</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Provide details on allowed materials and recycling conditions..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100 rounded-pill fw-semibold shadow-sm">
+                    <i class="bi bi-plus-circle me-1"></i> Add Category
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Categories List -->
+    <div class="col-lg-8">
+        <div class="ecosell-card p-4">
+            <h5 class="fw-bold text-dark mb-3">Standard Predefined Categories ({{ categories | length }})</h5>
+            <div class="table-responsive">
+                <table class="table-ecosell">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Tickets</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in categories %}
+                        <tr>
+                            <td>
+                                <strong class="text-dark">{{ c.category_name }}</strong>
+                            </td>
+                            <td>
+                                <span class="text-muted small text-truncate-2" style="max-width: 280px; display: block;">
+                                    {{ c.description or 'Standard recyclable material' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ c.tickets.count() }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {% if c.status == 'active' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %}">
+                                    {{ c.status | capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin.toggle_category', cat_id=c.id) }}">
+                                    {% if c.status == 'active' %}
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Deactivate">
+                                        Deactivate
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3" title="Activate">
+                                        Activate
+                                    </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

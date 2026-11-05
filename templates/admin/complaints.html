@@ -1,0 +1,127 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Complaints & Disputes - EcoSell Admin{% endblock %}
+{% block page_title %}Complaints & Dispute Resolution{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Platform Administration</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i> Overview Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.buyers_verification') }}" class="sidebar-link">
+        <i class="bi bi-patch-check-fill text-warning"></i> Buyer Verification
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+        <i class="bi bi-people-fill"></i> User Management
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.categories') }}" class="sidebar-link">
+        <i class="bi bi-tags-fill text-success"></i> Garbage Categories
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-perforated-fill"></i> All Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.transactions') }}" class="sidebar-link">
+        <i class="bi bi-cash-stack text-success"></i> Transactions & Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.complaints') }}" class="sidebar-link active">
+        <i class="bi bi-shield-exclamation text-danger"></i> Complaints & Disputes
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.reports') }}" class="sidebar-link">
+        <i class="bi bi-file-earmark-bar-graph"></i> Recycling Reports
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Customer Grievances & Platform Inquiries</h4>
+    <p class="text-muted small mb-0">Investigate user disputes, weigh discrepancies, and issue official resolutions.</p>
+</div>
+
+<div class="ecosell-card p-4">
+    <h5 class="fw-bold text-dark mb-3">All Complaints ({{ complaints | length }})</h5>
+    {% if complaints %}
+    <div class="d-flex flex-column gap-3">
+        {% for c in complaints %}
+        <div class="p-3 bg-light rounded-3 border">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <strong class="text-dark">#CMP-{{ c.id }}: {{ c.subject }}</strong>
+                    <span class="badge {% if c.user.role == 'seller' %}bg-success{% else %}bg-primary{% endif %} rounded-pill ms-2">
+                        {{ c.user.full_name }} ({{ c.user.role | capitalize }})
+                    </span>
+                </div>
+                <span class="badge badge-status 
+                    {% if c.complaint_status == 'Resolved' %}badge-completed
+                    {% elif c.complaint_status == 'Under Review' %}badge-scheduled
+                    {% elif c.complaint_status == 'Closed' %}badge-secondary
+                    {% else %}badge-pending{% endif %}">
+                    {{ c.complaint_status }}
+                </span>
+            </div>
+
+            {% if c.ticket %}
+            <div class="text-muted small mb-2">
+                <i class="bi bi-ticket-detailed me-1"></i> Associated Ticket: <strong>{{ c.ticket.ticket_number }}</strong>
+            </div>
+            {% endif %}
+
+            <p class="text-dark small mb-2 p-2 bg-white rounded border">{{ c.description }}</p>
+            <div class="text-muted small mb-3" style="font-size: 0.72rem;">Submitted on {{ c.created_at | datetime_format }}</div>
+
+            {% if c.admin_response %}
+            <div class="p-2 bg-success-subtle rounded border border-success-subtle small mb-3">
+                <strong class="text-success"><i class="bi bi-check2-circle me-1"></i> Current Admin Resolution:</strong>
+                <div>{{ c.admin_response }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Admin Response Form -->
+            <form method="POST" action="{{ url_for('admin.complaints') }}" class="pt-2 border-top">
+                <input type="hidden" name="complaint_id" value="{{ c.id }}">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-7">
+                        <input type="text" name="admin_response" class="form-control form-control-sm" placeholder="Type admin resolution or response to user..." value="{{ c.admin_response or '' }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="complaint_status" class="form-select form-select-sm">
+                            <option value="Under Review" {% if c.complaint_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                            <option value="Resolved" {% if c.complaint_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="Closed" {% if c.complaint_status == 'Closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100">
+                            Save Response
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-shield-check empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">Zero Outstanding Complaints</h6>
+        <p class="text-muted small mb-0">No seller or buyer complaints are currently logged.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

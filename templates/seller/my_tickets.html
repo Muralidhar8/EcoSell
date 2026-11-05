@@ -1,0 +1,168 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}My Selling Tickets - EcoSell{% endblock %}
+{% block page_title %}My Selling Tickets{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Seller Menu</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.create_ticket') }}" class="sidebar-link">
+        <i class="bi bi-plus-circle-fill text-success"></i> Create Selling Ticket
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.my_tickets') }}" class="sidebar-link active">
+        <i class="bi bi-ticket-detailed-fill"></i> My Selling Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Pickup Tracking
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.earnings') }}" class="sidebar-link">
+        <i class="bi bi-wallet2 text-warning"></i> My Earnings
+    </a>
+</li>
+<li class="sidebar-heading">Account</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.complaints') }}" class="sidebar-link">
+        <i class="bi bi-chat-square-dots"></i> Help & Complaints
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.profile') }}" class="sidebar-link">
+        <i class="bi bi-gear"></i> Profile Settings
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<!-- Header Bar -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">My Recyclable Garbage Tickets</h4>
+        <p class="text-muted small mb-0">Track all your tickets, active buyer bids, and collection status.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('seller.create_ticket') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> New Selling Ticket
+        </a>
+    </div>
+</div>
+
+<!-- Filter Tabs & Search -->
+<div class="ecosell-card p-3 mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-8">
+            <ul class="nav nav-pills small gap-1">
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill py-1 px-3 {% if current_filter == 'all' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('seller.my_tickets', status='all', q=search_query) }}">All Tickets</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill py-1 px-3 {% if current_filter == 'Open' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('seller.my_tickets', status='Open', q=search_query) }}">Open</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill py-1 px-3 {% if current_filter == 'Offer Accepted' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('seller.my_tickets', status='Offer Accepted', q=search_query) }}">Offer Accepted</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill py-1 px-3 {% if current_filter == 'Scheduled' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('seller.my_tickets', status='Scheduled', q=search_query) }}">Scheduled</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill py-1 px-3 {% if current_filter == 'Completed' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('seller.my_tickets', status='Completed', q=search_query) }}">Completed</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <form method="GET" action="{{ url_for('seller.my_tickets') }}" class="d-flex">
+                <input type="hidden" name="status" value="{{ current_filter }}">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control form-control-sm border-end-0" placeholder="Search ticket #, material..." value="{{ search_query }}">
+                    <button class="btn btn-outline-secondary btn-sm border-start-0" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tickets List -->
+{% if tickets %}
+<div class="row g-4">
+    {% for t in tickets %}
+    <div class="col-md-6 col-xl-4">
+        <div class="ecosell-card h-100 p-4 d-flex flex-column justify-content-between card-hover-elevate">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-light text-dark border px-2 py-1">
+                        <i class="bi bi-tag me-1"></i> {{ t.category.category_name }}
+                    </span>
+                    <span class="badge badge-status 
+                        {% if t.status == 'Open' %}badge-open
+                        {% elif t.status == 'Completed' %}badge-completed
+                        {% elif t.status == 'Cancelled' %}badge-cancelled
+                        {% else %}badge-accepted{% endif %}">
+                        {{ t.status }}
+                    </span>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-1">
+                    <a href="{{ url_for('seller.ticket_detail', ticket_id=t.id) }}" class="text-dark">
+                        {{ t.ticket_number }}
+                    </a>
+                </h5>
+                <p class="text-muted small mb-3 text-truncate-2">
+                    {{ t.description or 'No extra notes provided.' }}
+                </p>
+
+                <div class="p-3 bg-light rounded-3 mb-3 small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Est. Quantity:</span>
+                        <strong class="text-dark">{{ t.estimated_quantity }} kg ({{ t.garbage_condition }})</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Pickup Date:</span>
+                        <span class="text-dark">{{ t.preferred_pickup_date | date_format }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Location:</span>
+                        <span class="text-dark text-truncate ms-2" style="max-width: 160px;">{{ t.city }} ({{ t.pincode }})</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                    <div>
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-chat-quote-fill me-1"></i> {{ t.offers.count() }} Bids Received
+                        </span>
+                    </div>
+                    <a href="{{ url_for('seller.ticket_detail', ticket_id=t.id) }}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                        View Bids & Details <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <i class="bi bi-ticket-perforated empty-state-icon"></i>
+    <h5 class="fw-bold text-dark">No Tickets Found</h5>
+    <p class="text-muted small mb-3">No tickets matched the current filter or search criteria.</p>
+    <a href="{{ url_for('seller.create_ticket') }}" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-plus-circle me-1"></i> Create New Ticket
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,151 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Buyer Verification - EcoSell Admin{% endblock %}
+{% block page_title %}Scrap Dealer & Buyer Verification{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Platform Administration</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i> Overview Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.buyers_verification') }}" class="sidebar-link active">
+        <i class="bi bi-patch-check-fill text-warning"></i> Buyer Verification
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+        <i class="bi bi-people-fill"></i> User Management
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.categories') }}" class="sidebar-link">
+        <i class="bi bi-tags-fill text-success"></i> Garbage Categories
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-perforated-fill"></i> All Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.transactions') }}" class="sidebar-link">
+        <i class="bi bi-cash-stack text-success"></i> Transactions & Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.complaints') }}" class="sidebar-link">
+        <i class="bi bi-shield-exclamation text-danger"></i> Complaints & Disputes
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.reports') }}" class="sidebar-link">
+        <i class="bi bi-file-earmark-bar-graph"></i> Recycling Reports
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Scrap Dealer Verification Queue</h4>
+    <p class="text-muted small mb-0">Review trade credentials, physical yard addresses, and service localities before granting bidding access.</p>
+</div>
+
+<!-- Filter Tabs -->
+<div class="ecosell-card p-3 mb-4">
+    <ul class="nav nav-pills small gap-1">
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'all' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.buyers_verification', status='all') }}">All Dealers</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'pending' %}active bg-warning text-dark{% else %}text-muted{% endif %}" href="{{ url_for('admin.buyers_verification', status='pending') }}">Pending Review</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'verified' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.buyers_verification', status='verified') }}">Verified</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'rejected' %}active bg-danger text-white{% else %}text-muted{% endif %}" href="{{ url_for('admin.buyers_verification', status='rejected') }}">Rejected</a>
+        </li>
+    </ul>
+</div>
+
+<!-- Buyers Table -->
+<div class="ecosell-card p-4">
+    {% if buyers %}
+    <div class="table-responsive">
+        <table class="table-ecosell">
+            <thead>
+                <tr>
+                    <th>Shop / Enterprise</th>
+                    <th>Proprietor</th>
+                    <th>Contact Phone</th>
+                    <th>Yard Address</th>
+                    <th>Service Area</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in buyers %}
+                <tr>
+                    <td>
+                        <strong class="text-dark d-block">{{ b.shop_name }}</strong>
+                        <span class="text-muted small">Rating: ⭐ {{ b.rating }}</span>
+                    </td>
+                    <td>
+                        <div>{{ b.user.full_name }}</div>
+                        <span class="text-muted small">{{ b.user.email }}</span>
+                    </td>
+                    <td><a href="tel:{{ b.user.phone }}" class="text-success">{{ b.user.phone }}</a></td>
+                    <td>
+                        <div class="small text-dark">{{ b.shop_address }}</div>
+                        <span class="text-muted small">{{ b.city }}, {{ b.state }} - {{ b.pincode }}</span>
+                    </td>
+                    <td>
+                        <span class="small text-muted">{{ b.service_area }}</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-status 
+                            {% if b.verification_status == 'verified' %}badge-verified
+                            {% elif b.verification_status == 'rejected' %}badge-cancelled
+                            {% else %}badge-pending{% endif %}">
+                            {{ b.verification_status | capitalize }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            {% if b.verification_status != 'verified' %}
+                            <form method="POST" action="{{ url_for('admin.verify_buyer', profile_id=b.id) }}">
+                                <input type="hidden" name="action" value="verified">
+                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-2" title="Verify Dealer">
+                                    <i class="bi bi-check-lg"></i> Verify
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% if b.verification_status != 'rejected' %}
+                            <form method="POST" action="{{ url_for('admin.verify_buyer', profile_id=b.id) }}">
+                                <input type="hidden" name="action" value="rejected">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Reject Application" onclick="return confirm('Reject this buyer account?');">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-shield-check empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">No Buyers in this Queue</h6>
+        <p class="text-muted small mb-0">All scrap dealer registration requests have been processed.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

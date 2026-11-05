@@ -1,0 +1,134 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}All Garbage Tickets - EcoSell Admin{% endblock %}
+{% block page_title %}Platform Selling Tickets Monitor{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Platform Administration</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i> Overview Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.buyers_verification') }}" class="sidebar-link">
+        <i class="bi bi-patch-check-fill text-warning"></i> Buyer Verification
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+        <i class="bi bi-people-fill"></i> User Management
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.categories') }}" class="sidebar-link">
+        <i class="bi bi-tags-fill text-success"></i> Garbage Categories
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.tickets') }}" class="sidebar-link active">
+        <i class="bi bi-ticket-perforated-fill"></i> All Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.transactions') }}" class="sidebar-link">
+        <i class="bi bi-cash-stack text-success"></i> Transactions & Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.complaints') }}" class="sidebar-link">
+        <i class="bi bi-shield-exclamation text-danger"></i> Complaints & Disputes
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.reports') }}" class="sidebar-link">
+        <i class="bi bi-file-earmark-bar-graph"></i> Recycling Reports
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Global Marketplace Tickets</h4>
+    <p class="text-muted small mb-0">Audit waste tickets created by sellers and track offer fulfillment lifecycle.</p>
+</div>
+
+<!-- Filter Tabs -->
+<div class="ecosell-card p-3 mb-4">
+    <ul class="nav nav-pills small gap-1">
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'all' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.tickets', status='all') }}">All Tickets</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'Open' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.tickets', status='Open') }}">Open</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'Offer Accepted' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.tickets', status='Offer Accepted') }}">Offer Accepted</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'Scheduled' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.tickets', status='Scheduled') }}">Scheduled</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'Completed' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('admin.tickets', status='Completed') }}">Completed</a>
+        </li>
+    </ul>
+</div>
+
+<!-- Tickets Table -->
+<div class="ecosell-card p-4">
+    {% if tickets %}
+    <div class="table-responsive">
+        <table class="table-ecosell">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Seller</th>
+                    <th>Category</th>
+                    <th>Est. Weight</th>
+                    <th>Location</th>
+                    <th>Pickup Date</th>
+                    <th>Bids</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tickets %}
+                <tr>
+                    <td class="fw-bold text-dark">{{ t.ticket_number }}</td>
+                    <td>
+                        <strong class="text-dark">{{ t.seller.full_name }}</strong>
+                        <div class="text-muted small">{{ t.seller.phone }}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ t.category.category_name }}</span>
+                    </td>
+                    <td>{{ t.estimated_quantity }} kg ({{ t.garbage_condition }})</td>
+                    <td>{{ t.city }} ({{ t.pincode }})</td>
+                    <td>{{ t.preferred_pickup_date | date_format }}</td>
+                    <td>
+                        <span class="badge bg-warning text-dark">{{ t.offers.count() }} offers</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-status 
+                            {% if t.status == 'Open' %}badge-open
+                            {% elif t.status == 'Completed' %}badge-completed
+                            {% elif t.status == 'Cancelled' %}badge-cancelled
+                            {% else %}badge-accepted{% endif %}">
+                            {{ t.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-ticket-perforated empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">No Tickets Found</h6>
+        <p class="text-muted small mb-0">No tickets match this filter criterion.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

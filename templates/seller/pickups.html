@@ -1,0 +1,148 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Pickup Tracking - EcoSell{% endblock %}
+{% block page_title %}Doorstep Pickup Tracking{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Seller Menu</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.create_ticket') }}" class="sidebar-link">
+        <i class="bi bi-plus-circle-fill text-success"></i> Create Selling Ticket
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.my_tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-detailed-fill"></i> My Selling Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.pickups') }}" class="sidebar-link active">
+        <i class="bi bi-truck"></i> Pickup Tracking
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.earnings') }}" class="sidebar-link">
+        <i class="bi bi-wallet2 text-warning"></i> My Earnings
+    </a>
+</li>
+<li class="sidebar-heading">Account</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.complaints') }}" class="sidebar-link">
+        <i class="bi bi-chat-square-dots"></i> Help & Complaints
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('seller.profile') }}" class="sidebar-link">
+        <i class="bi bi-gear"></i> Profile Settings
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Doorstep Pickup Tracking</h4>
+    <p class="text-muted small mb-0">Monitor live status of scrap dealer visits, weigh-ins, and completed collection records.</p>
+</div>
+
+{% if pickups %}
+<div class="row g-4">
+    {% for p in pickups %}
+    <div class="col-lg-6">
+        <div class="ecosell-card p-4 h-100 card-hover-elevate">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <span class="badge bg-light text-dark border mb-1">{{ p.ticket.category.category_name }}</span>
+                    <h5 class="fw-bold text-dark mb-0">
+                        <a href="{{ url_for('seller.ticket_detail', ticket_id=p.ticket.id) }}" class="text-dark">
+                            {{ p.ticket.ticket_number }}
+                        </a>
+                    </h5>
+                </div>
+                <span class="badge badge-status 
+                    {% if p.pickup_status == 'Completed' %}badge-completed
+                    {% elif p.pickup_status == 'Cancelled' %}badge-cancelled
+                    {% else %}badge-scheduled{% endif %}">
+                    {{ p.pickup_status }}
+                </span>
+            </div>
+
+            <!-- Mini Progress Bar / Steps -->
+            <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3 mb-3 small text-center">
+                <div class="{% if p.pickup_status in ['Scheduled', 'Buyer On The Way', 'Arrived', 'Garbage Collected', 'Completed'] %}text-success fw-bold{% else %}text-muted{% endif %}">
+                    <i class="bi bi-calendar-check d-block fs-5"></i> Scheduled
+                </div>
+                <i class="bi bi-chevron-right text-muted"></i>
+                <div class="{% if p.pickup_status in ['Buyer On The Way', 'Arrived', 'Garbage Collected', 'Completed'] %}text-success fw-bold{% else %}text-muted{% endif %}">
+                    <i class="bi bi-truck d-block fs-5"></i> En Route
+                </div>
+                <i class="bi bi-chevron-right text-muted"></i>
+                <div class="{% if p.pickup_status in ['Arrived', 'Garbage Collected', 'Completed'] %}text-success fw-bold{% else %}text-muted{% endif %}">
+                    <i class="bi bi-geo-alt-fill d-block fs-5"></i> Arrived
+                </div>
+                <i class="bi bi-chevron-right text-muted"></i>
+                <div class="{% if p.pickup_status == 'Completed' %}text-success fw-bold{% else %}text-muted{% endif %}">
+                    <i class="bi bi-check-circle-fill d-block fs-5"></i> Completed
+                </div>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 small mb-3">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <span class="text-muted d-block">Scrap Dealer:</span>
+                        <strong class="text-dark">{{ p.buyer.buyer_profile.shop_name if p.buyer.buyer_profile else p.buyer.full_name }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block">Dealer Phone:</span>
+                        <a href="tel:{{ p.buyer.phone }}" class="text-success fw-bold">{{ p.buyer.phone }}</a>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block">Pickup Date:</span>
+                        <span class="text-dark">{{ p.pickup_date | date_format }}</span>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block">Time Slot:</span>
+                        <span class="text-dark">{{ p.pickup_time }}</span>
+                    </div>
+                    <div class="col-12 border-top pt-2 mt-1">
+                        <span class="text-muted d-block">Pickup Address:</span>
+                        <span class="text-dark">{{ p.ticket.pickup_address }}, {{ p.ticket.city }}</span>
+                    </div>
+                    {% if p.actual_weight %}
+                    <div class="col-6 border-top pt-2 mt-1">
+                        <span class="text-muted d-block">Verified Actual Weight:</span>
+                        <strong class="text-success fs-6">{{ p.actual_weight }} kg</strong>
+                    </div>
+                    {% endif %}
+                    {% if p.ticket.transaction %}
+                    <div class="col-6 border-top pt-2 mt-1">
+                        <span class="text-muted d-block">Final Payment:</span>
+                        <strong class="text-success fs-6">{{ p.ticket.transaction.total_amount | currency }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <a href="{{ url_for('seller.ticket_detail', ticket_id=p.ticket.id) }}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                    View Full Details & Bids <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <i class="bi bi-truck empty-state-icon"></i>
+    <h5 class="fw-bold text-dark">No Scheduled Pickups</h5>
+    <p class="text-muted small mb-3">When you accept an offer from a scrap dealer, your doorstep collection appointment will be tracked here.</p>
+    <a href="{{ url_for('seller.my_tickets') }}" class="btn btn-primary rounded-pill px-4">View My Tickets</a>
+</div>
+{% endif %}
+{% endblock %}
+

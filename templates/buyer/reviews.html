@@ -1,0 +1,115 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Customer Reviews - EcoSell{% endblock %}
+{% block page_title %}Customer Ratings & Reviews{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Buyer Operations</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.browse') }}" class="sidebar-link">
+        <i class="bi bi-search text-info"></i> Browse Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.my_offers') }}" class="sidebar-link">
+        <i class="bi bi-tag-fill text-warning"></i> My Bids & Offers
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.manage_prices') }}" class="sidebar-link">
+        <i class="bi bi-currency-rupee text-success"></i> Set Purchasing Rates
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Scheduled Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.purchases') }}" class="sidebar-link">
+        <i class="bi bi-receipt"></i> Purchase History
+    </a>
+</li>
+<li class="sidebar-heading">Shop Reputation</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.reviews') }}" class="sidebar-link active">
+        <i class="bi bi-star-fill text-warning"></i> Customer Reviews
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.profile') }}" class="sidebar-link">
+        <i class="bi bi-shop"></i> Shop Profile
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Reputation & Customer Ratings</h4>
+    <p class="text-muted small mb-0">Ratings given by sellers after doorstep pickups.</p>
+</div>
+
+<!-- Score Header Card -->
+<div class="ecosell-card p-4 mb-4">
+    <div class="row align-items-center g-3">
+        <div class="col-md-4 text-center border-end">
+            <div class="display-4 fw-bold text-warning mb-1">
+                {{ current_user.buyer_profile.rating if current_user.buyer_profile else '5.0' }}
+            </div>
+            <div class="star-rating mb-1">
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-half"></i>
+            </div>
+            <div class="text-muted small">Average Dealer Rating (Based on {{ reviews | length }} reviews)</div>
+        </div>
+        <div class="col-md-8 px-md-4">
+            <h6 class="fw-bold text-dark mb-2">Tips to Maintain High Reputation:</h6>
+            <ul class="text-muted small mb-0">
+                <li class="mb-1">Arrive promptly within the agreed pickup time slot.</li>
+                <li class="mb-1">Always calibrate your portable digital weighing scale in front of the seller.</li>
+                <li class="mb-1">Offer immediate payment via UPI or clean currency notes without haggling.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Reviews List -->
+<div class="ecosell-card p-4">
+    <h5 class="fw-bold text-dark mb-3">Customer Feedback Log</h5>
+    {% if reviews %}
+    <div class="d-flex flex-column gap-3">
+        {% for r in reviews %}
+        <div class="p-3 bg-light rounded-3 border">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <div>
+                    <strong class="text-dark">{{ r.seller.full_name }}</strong>
+                    <span class="badge bg-light text-dark border ms-2">Ticket {{ r.ticket.ticket_number }}</span>
+                </div>
+                <div class="star-rating small">
+                    {% for i in range(r.rating) %}<i class="bi bi-star-fill text-warning"></i>{% endfor %}
+                    {% for i in range(5 - r.rating) %}<i class="bi bi-star text-muted"></i>{% endfor %}
+                </div>
+            </div>
+            <p class="text-muted small mb-1">{{ r.review_text or 'No comment left.' }}</p>
+            <div class="text-muted" style="font-size: 0.72rem;">Reviewed on {{ r.created_at | datetime_format }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-star empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">No Reviews Yet</h6>
+        <p class="text-muted small mb-0">Once you complete pickups for sellers, their feedback and ratings will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,101 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Set Purchasing Rates - EcoSell{% endblock %}
+{% block page_title %}Category Purchasing Price Rates{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Buyer Operations</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.browse') }}" class="sidebar-link">
+        <i class="bi bi-search text-info"></i> Browse Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.my_offers') }}" class="sidebar-link">
+        <i class="bi bi-tag-fill text-warning"></i> My Bids & Offers
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.manage_prices') }}" class="sidebar-link active">
+        <i class="bi bi-currency-rupee text-success"></i> Set Purchasing Rates
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Scheduled Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.purchases') }}" class="sidebar-link">
+        <i class="bi bi-receipt"></i> Purchase History
+    </a>
+</li>
+<li class="sidebar-heading">Shop Reputation</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.reviews') }}" class="sidebar-link">
+        <i class="bi bi-star-fill text-warning"></i> Customer Reviews
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.profile') }}" class="sidebar-link">
+        <i class="bi bi-shop"></i> Shop Profile
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="mb-4">
+    <h4 class="fw-bold text-dark mb-1">Set Your Benchmark Category Purchasing Rates</h4>
+    <p class="text-muted small mb-0">Configure your standard price per kilogram for each material category. These default rates will pre-populate when you place bids.</p>
+</div>
+
+<form method="POST" action="{{ url_for('buyer.manage_prices') }}">
+    <div class="ecosell-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-dark mb-0">Standard Price Rates (₹ per Kilogram)</h6>
+            <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm fw-semibold">
+                <i class="bi bi-check2-circle me-1"></i> Save All Rates
+            </button>
+        </div>
+
+        <div class="row g-3">
+            {% for cat in categories %}
+            <div class="col-md-6 col-lg-4">
+                <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark">{{ cat.category_name }}</span>
+                            <span class="badge bg-secondary-subtle text-secondary small">Active</span>
+                        </div>
+                        <p class="text-muted small mb-2 text-truncate-2" style="font-size: 0.78rem;">
+                            {{ cat.description or 'Standard clean recyclable material.' }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="form-label small fw-semibold text-muted mb-1">Your Price / kg:</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white">₹</span>
+                            <input type="number" step="0.25" min="0" name="price_{{ cat.id }}" class="form-control fw-bold text-success" placeholder="0.00" value="{{ existing_rates.get(cat.id, '') }}">
+                            <span class="input-group-text bg-white">/ kg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+            <button type="submit" class="btn btn-success rounded-pill px-5 shadow-sm fw-semibold">
+                <i class="bi bi-check2-circle me-1"></i> Save All Rates
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}
+

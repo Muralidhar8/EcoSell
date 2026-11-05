@@ -1,0 +1,120 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Shop Profile - EcoSell{% endblock %}
+{% block page_title %}Scrap Dealer & Shop Profile{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Buyer Operations</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.browse') }}" class="sidebar-link">
+        <i class="bi bi-search text-info"></i> Browse Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.my_offers') }}" class="sidebar-link">
+        <i class="bi bi-tag-fill text-warning"></i> My Bids & Offers
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.manage_prices') }}" class="sidebar-link">
+        <i class="bi bi-currency-rupee text-success"></i> Set Purchasing Rates
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Scheduled Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.purchases') }}" class="sidebar-link">
+        <i class="bi bi-receipt"></i> Purchase History
+    </a>
+</li>
+<li class="sidebar-heading">Shop Reputation</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.reviews') }}" class="sidebar-link">
+        <i class="bi bi-star-fill text-warning"></i> Customer Reviews
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.profile') }}" class="sidebar-link active">
+        <i class="bi bi-shop"></i> Shop Profile
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="ecosell-card p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-dark mb-0">Shop Profile & Service Areas</h4>
+                <span class="badge badge-status 
+                    {% if profile.verification_status == 'verified' %}badge-verified
+                    {% elif profile.verification_status == 'rejected' %}badge-cancelled
+                    {% else %}badge-pending{% endif %}">
+                    Verification: {{ profile.verification_status | capitalize }}
+                </span>
+            </div>
+            <p class="text-muted small mb-4">Manage your scrap business identity and operational service coverage.</p>
+
+            <form method="POST" action="{{ url_for('buyer.profile') }}">
+                <h6 class="text-uppercase fw-bold text-primary small mb-3 border-bottom pb-2">Business & Contact Info</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Shop / Enterprise Name *</label>
+                        <input type="text" name="shop_name" class="form-control" value="{{ profile.shop_name if profile else '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Proprietor Full Name *</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Contact Phone *</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ current_user.phone }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Account Email (Read-only)</label>
+                        <input type="email" class="form-control bg-light" value="{{ current_user.email }}" readonly>
+                    </div>
+                </div>
+
+                <h6 class="text-uppercase fw-bold text-primary small mb-3 border-bottom pb-2">Physical Yard & Service Localities</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark">Shop / Yard Physical Address *</label>
+                        <textarea name="shop_address" class="form-control" rows="2" required>{{ profile.shop_address if profile else '' }}</textarea>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold text-dark">City *</label>
+                        <input type="text" name="city" class="form-control" value="{{ profile.city if profile else '' }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">State *</label>
+                        <input type="text" name="state" class="form-control" value="{{ profile.state if profile else '' }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold text-dark">PIN Code *</label>
+                        <input type="text" name="pincode" class="form-control" value="{{ profile.pincode if profile else '' }}" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark">Service Areas / Localities Covered *</label>
+                        <input type="text" name="service_area" class="form-control" value="{{ profile.service_area if profile else '' }}" required>
+                        <div class="form-text small">Enter comma-separated localities (e.g. Andheri, Bandra, Powai, Kurla).</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                    Save Shop Profile
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

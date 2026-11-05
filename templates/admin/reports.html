@@ -1,0 +1,130 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Recycling Reports & Analytics - EcoSell Admin{% endblock %}
+{% block page_title %}Recycling Analytics & Platform Reports{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Platform Administration</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-speedometer2"></i> Overview Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.buyers_verification') }}" class="sidebar-link">
+        <i class="bi bi-patch-check-fill text-warning"></i> Buyer Verification
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+        <i class="bi bi-people-fill"></i> User Management
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.categories') }}" class="sidebar-link">
+        <i class="bi bi-tags-fill text-success"></i> Garbage Categories
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.tickets') }}" class="sidebar-link">
+        <i class="bi bi-ticket-perforated-fill"></i> All Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.transactions') }}" class="sidebar-link">
+        <i class="bi bi-cash-stack text-success"></i> Transactions & Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.complaints') }}" class="sidebar-link">
+        <i class="bi bi-shield-exclamation text-danger"></i> Complaints & Disputes
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('admin.reports') }}" class="sidebar-link active">
+        <i class="bi bi-file-earmark-bar-graph"></i> Recycling Reports
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">Recycling Analytics & Environmental Reports</h4>
+        <p class="text-muted small mb-0">Detailed material stream metrics, seller payouts, and environmental impact.</p>
+    </div>
+    <button onclick="window.print()" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+        <i class="bi bi-printer me-1"></i> Print / Export Report
+    </button>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card stat-success">
+            <div>
+                <div class="stat-title">Total Diverted Waste</div>
+                <div class="stat-value text-success">{{ total_kg | int }} kg</div>
+                <div class="small text-muted mt-1">Landfill diversion</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-info">
+            <div>
+                <div class="stat-title">Total Value Generated</div>
+                <div class="stat-value text-info">{{ total_revenue | currency }}</div>
+                <div class="small text-muted mt-1">Direct to sellers</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-warning">
+            <div>
+                <div class="stat-title">Fulfilled Collections</div>
+                <div class="stat-value text-dark">{{ total_completed }} / {{ total_tickets }}</div>
+                <div class="small text-muted mt-1">Fulfillment rate</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-dark">
+            <div>
+                <div class="stat-title">Marketplace Participants</div>
+                <div class="stat-value text-dark">{{ total_sellers + total_buyers }}</div>
+                <div class="small text-muted mt-1">{{ total_sellers }} sellers, {{ total_buyers }} buyers</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Breakdown Table -->
+<div class="ecosell-card p-4">
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-steps text-success me-2"></i> Performance by Material Category</h5>
+    <div class="table-responsive">
+        <table class="table-ecosell">
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th>Tickets Created</th>
+                    <th>Total Weighed Scrap (KG)</th>
+                    <th>Total Payouts Settled</th>
+                    <th>Est. CO2 Offset (kg)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in category_summary %}
+                <tr>
+                    <td><strong class="text-dark">{{ row[0] }}</strong></td>
+                    <td><span class="badge bg-light text-dark border">{{ row[1] or 0 }}</span></td>
+                    <td><strong>{{ (row[2] or 0) | float }} kg</strong></td>
+                    <td><strong class="text-success">{{ (row[3] or 0) | currency }}</strong></td>
+                    <td><span class="text-info">{{ ((row[2] or 0) * 1.8) | round(1) }} kg CO2e</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

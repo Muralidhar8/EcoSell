@@ -1,0 +1,154 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}My Offers & Bids - EcoSell{% endblock %}
+{% block page_title %}My Price Offers & Bids{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-heading">Buyer Operations</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.dashboard') }}" class="sidebar-link">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.browse') }}" class="sidebar-link">
+        <i class="bi bi-search text-info"></i> Browse Garbage Tickets
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.my_offers') }}" class="sidebar-link active">
+        <i class="bi bi-tag-fill text-warning"></i> My Bids & Offers
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.manage_prices') }}" class="sidebar-link">
+        <i class="bi bi-currency-rupee text-success"></i> Set Purchasing Rates
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.pickups') }}" class="sidebar-link">
+        <i class="bi bi-truck"></i> Scheduled Pickups
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.purchases') }}" class="sidebar-link">
+        <i class="bi bi-receipt"></i> Purchase History
+    </a>
+</li>
+<li class="sidebar-heading">Shop Reputation</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.reviews') }}" class="sidebar-link">
+        <i class="bi bi-star-fill text-warning"></i> Customer Reviews
+    </a>
+</li>
+<li class="sidebar-item">
+    <a href="{{ url_for('buyer.profile') }}" class="sidebar-link">
+        <i class="bi bi-shop"></i> Shop Profile
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_body %}
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">My Submitted Price Offers</h4>
+        <p class="text-muted small mb-0">Track winning bids, pending offers, and collection status.</p>
+    </div>
+    <a href="{{ url_for('buyer.browse') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+        <i class="bi bi-plus-circle me-1"></i> Browse More Tickets
+    </a>
+</div>
+
+<!-- Status Filter Tabs -->
+<div class="ecosell-card p-3 mb-4">
+    <ul class="nav nav-pills small gap-1">
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'all' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('buyer.my_offers', status='all') }}">All Bids</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'Pending' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('buyer.my_offers', status='Pending') }}">Pending</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'Accepted' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('buyer.my_offers', status='Accepted') }}">Accepted (Won)</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'Closed' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('buyer.my_offers', status='Closed') }}">Closed / Outbid</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill py-1 px-3 {% if current_status == 'Withdrawn' %}active bg-success{% else %}text-muted{% endif %}" href="{{ url_for('buyer.my_offers', status='Withdrawn') }}">Withdrawn</a>
+        </li>
+    </ul>
+</div>
+
+<!-- Offers Table -->
+<div class="ecosell-card p-4">
+    {% if offers %}
+    <div class="table-responsive">
+        <table class="table-ecosell">
+            <thead>
+                <tr>
+                    <th>Ticket Number</th>
+                    <th>Category</th>
+                    <th>Est. Quantity</th>
+                    <th>Offered Rate</th>
+                    <th>Estimated Payout</th>
+                    <th>Bid Date</th>
+                    <th>Offer Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in offers %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('buyer.ticket_detail', ticket_id=o.ticket.id) }}" class="fw-bold text-dark">
+                            {{ o.ticket.ticket_number }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ o.ticket.category.category_name }}</span>
+                    </td>
+                    <td>{{ o.ticket.estimated_quantity }} kg</td>
+                    <td><strong class="text-success fs-6">₹{{ o.offered_price_per_kg }}/kg</strong></td>
+                    <td><strong class="text-dark">{{ o.estimated_total | currency }}</strong></td>
+                    <td class="text-muted small">{{ o.created_at | datetime_format }}</td>
+                    <td>
+                        <span class="badge badge-status 
+                            {% if o.offer_status == 'Accepted' %}badge-completed
+                            {% elif o.offer_status == 'Rejected' or o.offer_status == 'Closed' %}badge-cancelled
+                            {% elif o.offer_status == 'Pending' %}badge-pending
+                            {% else %}badge-secondary{% endif %}">
+                            {{ o.offer_status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('buyer.ticket_detail', ticket_id=o.ticket.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                View
+                            </a>
+                            {% if o.offer_status == 'Pending' %}
+                            <form method="POST" action="{{ url_for('buyer.withdraw_offer', offer_id=o.id) }}" onsubmit="return confirm('Withdraw this offer?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Withdraw">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state py-4">
+        <i class="bi bi-tag empty-state-icon"></i>
+        <h6 class="fw-bold text-dark">No Offers Placed</h6>
+        <p class="text-muted small mb-3">You haven't submitted any bids under this filter category yet.</p>
+        <a href="{{ url_for('buyer.browse') }}" class="btn btn-primary rounded-pill px-4">Browse Available Scrap</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
